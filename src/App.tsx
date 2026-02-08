@@ -3,6 +3,7 @@ import { useState } from 'react'
 
 import './App.css'
 import myVideo  from './assets/nhu-ngoc.mp4'
+import HeartCanvas from "./HeartCanvas";
 
 
 const NO_PHRASES = [
@@ -25,17 +26,18 @@ function App() {
     <div className="app">
       {!isValentine ? (
         <>
-          <video
+          {/* <video
             src={myVideo}
             autoPlay
             loop
             muted
             playsInline
             className="video"
-          />
-
-          <h1>Will you be my Valentine? 💘</h1>
-
+          /> */}
+          <HeartCanvas />
+          <h1>Em biết em và toán học giống nhau chỗ nào không? Đó là rất khó hiểu nên người ta thường dành cả 1 đời ra để học, chị cũng thế, muốn dành cả đời để hiểu em hơn <br></br>
+            Nên là em có muốn làm Valentine của chị không? 💘
+          </h1>
           <div className="buttons">
             <button
               className="yes-btn"
