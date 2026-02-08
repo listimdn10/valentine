@@ -7,9 +7,8 @@ export default function HeartCanvas() {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
+    const ctx = canvas.getContext("2d")!; // Non-null assertion vì đã check canvas
+    
     const width = (canvas.width = 700);
     const height = (canvas.height = 700);
 
@@ -130,7 +129,6 @@ export default function HeartCanvas() {
       const pulse = 1 + Math.sin(t * 2) * 0.1;
 
       // Vẽ trái tim với implicit equation - chỉ vẽ theo progress
-      let pointsDrawn = 0;
       const totalPoints = [];
       
       // Thu thập tất cả các điểm trước
