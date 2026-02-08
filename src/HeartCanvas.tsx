@@ -18,6 +18,26 @@ export default function HeartCanvas() {
 
     let t = 0;
     let progress = 0; // Tiến trình vẽ từ 0 đến 1
+    
+    // Thu thập các điểm trái tim 1 lần duy nhất (tối ưu hiệu suất)
+    const heartPoints: Array<{ x: number; y: number; angle: number }> = [];
+    for (let x = -1.5; x <= 1.5; x += 0.012) {
+      for (let y = -1.5; y <= 1.5; y += 0.012) {
+        const f = Math.pow(x * x + y * y - 1, 3) - x * x * Math.pow(y, 3);
+        if (Math.abs(f) < 0.015) {
+          const angle = Math.atan2(-y, x);
+          heartPoints.push({ x, y, angle });
+        }
+      }
+    }
+    // Sắp xếp 1 lần duy nhất
+    heartPoints.sort((a, b) => b.angle - a.angle);
+    
+    // Cache gradient
+    const heartGradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, scale * 1.5);
+    heartGradient.addColorStop(0, "#ff1493");
+    heartGradient.addColorStop(0.5, "#ff69b4");
+    heartGradient.addColorStop(1, "#ff85c0");
 
     function drawBackground() {
       // Gradient background
@@ -120,37 +140,13 @@ export default function HeartCanvas() {
     }
 
     function drawHeart() {
-      // Tạo gradient cho trái tim
-      const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, scale * 1.5);
-      gradient.addColorStop(0, "#ff1493");
-      gradient.addColorStop(0.5, "#ff69b4");
-      gradient.addColorStop(1, "#ff85c0");
-
       const pulse = 1 + Math.sin(t * 2) * 0.1;
 
-      // Vẽ trái tim với implicit equation - chỉ vẽ theo progress
-      const totalPoints = [];
-      
-      // Thu thập tất cả các điểm trước
-      for (let x = -1.5; x <= 1.5; x += 0.008) {
-        for (let y = -1.5; y <= 1.5; y += 0.008) {
-          const f = Math.pow(x * x + y * y - 1, 3) - x * x * Math.pow(y, 3);
-          if (Math.abs(f) < 0.015) {
-            // Tính góc từ tâm để vẽ theo chiều kim đồng hồ
-            const angle = Math.atan2(-y, x);
-            totalPoints.push({ x, y, angle });
-          }
-        }
-      }
-
-      // Sắp xếp các điểm theo góc để vẽ tuần tự
-      totalPoints.sort((a, b) => b.angle - a.angle);
-      
-      // Chỉ vẽ số điểm theo progress
-      const pointsToDraw = Math.floor(totalPoints.length * progress);
+      // Vẽ trái tim với các điểm đã được cache
+      const pointsToDraw = Math.floor(heartPoints.length * progress);
       
       for (let i = 0; i < pointsToDraw; i++) {
-        const point = totalPoints[i];
+        const point = heartPoints[i];
         const screenX = cx + point.x * scale * pulse;
         const screenY = cy - point.y * scale * pulse;
         
@@ -161,11 +157,11 @@ export default function HeartCanvas() {
         ctx.globalAlpha = alpha;
         ctx.shadowBlur = i === pointsToDraw - 1 ? 25 : 10;
         ctx.shadowColor = "#ff1493";
-        ctx.fillStyle = gradient;
+        ctx.fillStyle = heartGradient;
         
-        ctx.beginPath();
-        ctx.arc(screenX, screenY, i === pointsToDraw - 1 ? 3 : 2, 0, Math.PI * 2);
-        ctx.fill();
+        // Sử dụng fillRect thay vì arc để nhanh hơn
+        const size = i === pointsToDraw - 1 ? 3 : 2;
+        ctx.fillRect(screenX - size/2, screenY - size/2, size, size);
       }
       
       ctx.globalAlpha = 1;
@@ -211,8 +207,8 @@ export default function HeartCanvas() {
 
       t += 0.03;
       
-      // Tăng progress để vẽ dần dần
-      progress += 0.01;
+      // Tăng progress để vẽ dần dần (nhanh hơn)
+      progress += 0.015;
       
       // Reset khi vẽ xong để lặp lại
       if (progress >= 1) {
